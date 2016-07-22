@@ -191,6 +191,7 @@ save_png600 <- function(...) png(..., res = 600, units = "in")
 # create multi-plots for OA-driven factors 
 
 create_fig_byOA_wide <- function(data, showlayout = TRUE, fig_title,
+                                 xaxis_line = 3, yaxis_line = 3,
                                  xval1, xval2, xval3, xval4,
                                  xlab1, xlab2, xlab3, xlab4,
                                  pred_xval1, pred_xval2, pred_xval3, pred_xval4, 
@@ -232,8 +233,8 @@ create_fig_byOA_wide <- function(data, showlayout = TRUE, fig_title,
                          8, 12, 16, 20, 24,
                          9, 13, 17, 21, 25),
                       byrow = TRUE, 6, 5), 
-               widths  = c(6.5, 4, 4, 4, 2.5), 
-               heights = c(.4, 1.5, 2.5, 2.5, 2.5, 3.5), 
+               widths  = c(6.5, 4, 4, 4, 2), 
+               heights = c(.4, 1.5, 2.5, 2.5, 2.5, 4), 
                respect = FALSE)
   if(showlayout) layout.show(nf)
   
@@ -241,9 +242,9 @@ create_fig_byOA_wide <- function(data, showlayout = TRUE, fig_title,
   par_r1c1   <- c(1, 6, 1, 1)
   par_r1c2   <- c(1, 0, 1, 1)
   par_r24c1  <- c(1, 6, 0, 1)
-  par_r5c1   <- c(4, 6, 0, 1)
+  par_r5c1   <- c(6, 6, 0, 1)
   par_r24c25 <- c(1, 0, 0, 1)
-  par_r5c25  <- c(4, 0, 0, 1)
+  par_r5c25  <- c(6, 0, 0, 1)
   
   # . boxplot in the 1st row ====
   m_R1 <- cbind(yval    = c(xval1, xval2, xval3, xval4),
@@ -279,8 +280,17 @@ create_fig_byOA_wide <- function(data, showlayout = TRUE, fig_title,
   m_ply(m_R25C14, function(..., xlim, ylim, xlab, ylab, par_val, xaxis){
     par(mar = get(par_val))
     create_regplot(..., data = data,
-                   xlim = get(xlim), ylim = get(ylim), 
-                   xlab = get(xlab), ylab = get(ylab))
+                   xlim = get(xlim), ylim = get(ylim),
+                   ann = F)
+    # define if axis labels are single or dobule lines
+    if(length(get(xlab)) > 1) 
+      xline <- c(xaxis_line, xaxis_line + 1.5) else xline <- xaxis_line
+    
+    if(length(get(ylab)) > 1) 
+      yline <- c(yaxis_line + 1.5, yaxis_line) else yline <- yaxis_line
+    
+    mtext(text = get(xlab), side = 1, line = xline, cex = .7)
+    mtext(text = get(ylab), side = 2, line = yline, cex = .7)
     if(xaxis) axis(1)
   })
   
@@ -300,6 +310,7 @@ create_fig_byOA_wide <- function(data, showlayout = TRUE, fig_title,
 }
 
 create_fig_OAdriver_wid <- function(data, showlayout = TRUE, fig_title, 
+                                    xaxis_line = 3, yaxis_line = 3,
                                     xval1, xval2, xval3,
                                     pred_xval1, pred_xval2, pred_xval3,
                                     xlim1 = NULL, xlim2 = NULL, xlim3 = NULL,
@@ -334,12 +345,12 @@ create_fig_OAdriver_wid <- function(data, showlayout = TRUE, fig_title,
   if(showlayout) layout.show(nf)
   
   # . fig margin ====
-  mar_r1c1   <- c(1, 5, 1, 1) # plot 1
-  mar_r24c1  <- c(1, 5, 0, 1) # plot 5, 6, 7
-  mar_r5c1   <- c(5, 5, 0, 1) # plot 8 
+  mar_r1c1   <- c(1, 6, 1, 1) # plot 1
+  mar_r24c1  <- c(1, 6, 0, 1) # plot 5, 6, 7
+  mar_r5c1   <- c(4, 6, 0, 1) # plot 8 
   mar_r1c23  <- c(1, 0, 1, 1) # plot 2, 3
   mar_r24c24 <- c(1, 0, 0, 1) # plot 9-11, 13-15, 17-19
-  mar_r5c25  <- c(5, 0, 0, 1) # plot 12, 16, 20
+  mar_r5c25  <- c(4, 0, 0, 1) # plot 12, 16, 20
   
   # . boplots on the 1st row ====
   m_R1 <- cbind(yval    = c(xval1, xval2, xval3),
@@ -378,9 +389,19 @@ create_fig_OAdriver_wid <- function(data, showlayout = TRUE, fig_title,
   # . regression plots ====
   m_ply(m_reg, function(..., xlab, xlim, ylab, ylim, mar_val, xaxis){
     par(mar = get(mar_val))
-    create_regplot(..., data = data, 
-                   xlim = get(xlim), ylim = get(ylim), 
-                   xlab = get(xlab), ylab = get(ylab))
+    create_regplot(..., data = data, xlim = get(xlim), ylim = get(ylim), 
+                   ann = F)
+    
+    # define if axis labels are single or dobule lines
+    if(length(get(xlab)) > 1) 
+      xline <- c(xaxis_line, xaxis_line + 1.5) else xline <- xaxis_line
+    
+    if(length(get(ylab)) > 1) 
+      yline <- c(yaxis_line + 1.5, yaxis_line) else yline <- yaxis_line
+    
+    mtext(text = get(xlab), side = 1, line = xline, cex = .7)
+    mtext(text = get(ylab), side = 2, line = yline, cex = .7)
+    
     if(xaxis) axis(1)
   })
   

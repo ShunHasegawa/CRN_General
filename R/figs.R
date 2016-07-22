@@ -39,16 +39,20 @@ create_fig_byOA_wide(data = mic_dd, showlayout = FALSE,
                      xval3 = "shikimic_R", pred_xval3 = "shikimic_R",
                      xlab3 = expression(Shikimic~(nmol)),
                      
-                     xval4 = "sqrt(total_R)", pred_xval4 = "total_R",
-                     xlab4 = expression(sqrt(Total~exudate~(nmol))),
+                     xval4 = "total_MUB", pred_xval4 = "total_MUB",
+                     xlab4 = c("Acid phosphatse", expression((MUB~nmol~h^'-1'))),
                      
-                     yval1 = "log(total_MUB_root)", 
-                     ylab1 = expression(atop("log(Acid phosphatse)", 
-                                             (MUB~nmol~h^'-1'~mm^'-2'))),
+                     yval1 = "log(Soil_phosphate)", 
+                     ylab1 = c(expression(log(IEM*-PO[4]^'3-'*-P)), 
+                               expression((mg~cm^'-2'))),
                      
-                     yval2 = 'log(leaf_Mn)', ylab2 = expression(log(Leaf~Mn~(mg~kg^'-1'))),
+                     yval2 = 'log(Soil_nitrate)', 
+                     ylab2 = c(expression(log(IEM*-NO[3]^'-'*-N)), 
+                               expression((mg~cm^'-2'))),
                      
-                     yval3 = "leaf_NP_ratio", ylab3 = "Leaf N:P ratio", 
+                     yval3 = "log(Soil_ammonium)", 
+                     ylab3 = c(expression(log(IEM*-NH[4]^'+'*-N)), 
+                               expression((mg~cm^'-2'))), 
                      
                      yval4 = "log(Soil_NP_ratio)", ylab4 = "log(Soil N:P ratio)")
 
@@ -89,13 +93,17 @@ create_fig_byOA_wide(data = mic_dd, showlayout = FALSE,
                      xval4 = "sqrt(total_P)", pred_xval4 = "total_P",
                      xlab4 = expression(sqrt(Total~exudate~(nmol))),
                      
-                     yval1 = "log(total_MUB_root)", 
-                     ylab1 = expression(atop("log(Acid phosphatse)", 
-                                             (MUB~nmol~h^'-1'~mm^'-2'))),
+                     yval1 = "log(Soil_phosphate)", 
+                     ylab1 = c(expression(log(IEM*-PO[4]^'3-'*-P)), 
+                               expression((mg~cm^'-2'))),
                      
-                     yval2 = 'log(leaf_Mn)', ylab2 = expression(log(Leaf~Mn~(mg~kg^'-1'))),
+                     yval2 = 'log(Soil_nitrate)', 
+                     ylab2 = c(expression(log(IEM*-NO[3]^'-'*-N)), 
+                               expression((mg~cm^'-2'))),
                      
-                     yval3 = "leaf_NP_ratio", ylab3 = "Leaf N:P ratio", 
+                     yval3 = "log(Soil_ammonium)", 
+                     ylab3 = c(expression(log(IEM*-NH[4]^'+'*-N)), 
+                               expression((mg~cm^'-2'))), 
                      
                      yval4 = "log(Soil_NP_ratio)", ylab4 = "log(Soil N:P ratio)")
 
@@ -140,8 +148,9 @@ create_fig_OAdriver_wid(data = mic_dd, showlayout = FALSE,
                         yval3 = "shikimic_R", 
                         ylab3 = expression(Shikimic~(nmol)),
                         
-                        yval4 = "sqrt(total_R)", 
-                        ylab4 = expression(sqrt(Total~exudate~(nmol))))
+                        yval4 = "total_MUB", 
+                        ylab4 = c("Acid phosphatse", 
+                                  expression((MUB~nmol~h^'-1'))))
 p <- recordPlot()
 
 pdf(file = "Output/Figs/Microlaena_rhizoOAdriving_factors.pdf", 
@@ -192,6 +201,51 @@ replayPlot(p)
 dev.off()
 
 
+# > Soil-Leaf chemistry ---------------------------------------------------
+
+create_fig_byOA_wide(data = mic_dd, showlayout = FALSE, 
+                     fig_title = "Microlaena-Soil vs. Leaf",
+                     
+                     xval1 = "log(Soil_nitrate)", pred_xval1 = "Soil_nitrate", 
+                     xlab1 = c(expression(log(IEM*-NO[3]^'-'*-N)), 
+                               expression((mg~cm^'-2'))),
+                     
+                     xval2 = "log(Soil_ammonium)", pred_xval2 = "Soil_ammonium",
+                     xlab2 = c(expression(log(IEM*-NH[4]^'+'*-N)), 
+                               expression((mg~cm^'-2'))),
+                     
+                     xval3 = "log(Soil_phosphate)", pred_xval3 = "Soil_phosphate",
+                     xlab3 = c(expression(log(IEM*-PO[4]^'3-'*-P)), 
+                               expression((mg~cm^'-2'))),
+                     
+                     xval4 = "log(Soil_NP_ratio)", pred_xval4 = "Soil_NP_ratio",
+                     xlab4 = "log(Soil N:P ratio)",
+                     
+                     yval1 = "leaf_N", 
+                     ylab1 = expression(Leaf~N~(mg~kg^'-1')),
+                     
+                     yval2 = 'leaf_P', 
+                     ylab2 = expression(Leaf~P~(mg~kg^'-1')),
+                     
+                     yval3 = "leaf_NP_ratio", 
+                     ylab3 = "Leaf N:P ratio", 
+                     
+                     yval4 = "log(leaf_Mn)", 
+                     ylab4 =  expression(Leaf~Mn~(mg~kg^'-1')))
+
+p <- recordPlot()
+
+pdf(file = "Output/Figs/Microlaena_soil_leaf_chem.pdf", 
+    width = 6, height = 6.5)
+replayPlot(p)
+dev.off()
+
+save_png600(filename = "Output/Figs/Microlaena_soil_leaf_chem.png",
+            width = 6, height = 6.5)
+replayPlot(p)
+dev.off()
+
+
 # Hakea -------------------------------------------------------------------
 
 hak_dd <- all_dd %>% 
@@ -220,18 +274,22 @@ create_fig_byOA_wide(data = hak_dd, showlayout = FALSE,
                      
                      xval3 = "log(trans_aconitic_R)", 
                      pred_xval3 = "trans_aconitic_R",
-                     xlab3 = "log(Trans-aconitic\n(nmol))",
+                     xlab3 = c("log(Trans-aconitic)", "(nmol)"),
                      
-                     xval4 = "log(total_R)", pred_xval4 = "total_R",
-                     xlab4 = "log(Total exudate\n(nmol))",
+                     xval4 = "total_MUB", pred_xval4 = "total_MUB",
+                     xlab4 = c("Acid phosphatse", expression((MUB~nmol~h^'-1'))),
                      
-                     yval1 = "total_MUB_root", 
-                     ylab1 = expression(atop("Acid phosphatse", 
-                                             (MUB~nmol~h^'-1'~mm^'-2'))),
+                     yval1 = "Soil_phosphate", 
+                     ylab1 = c(expression(IEM*-PO[4]^'3-'*-P), 
+                               expression((mg~cm^'-2'))),
                      
-                     yval2 = 'log(leaf_Mn)', ylab2 = expression(log(Leaf~Mn~(mg~kg^'-1'))),
+                     yval2 = 'Soil_nitrate', 
+                     ylab2 = c(expression(IEM*-NO[3]^'-'*-N), 
+                               expression((mg~cm^'-2'))),
                      
-                     yval3 = "leaf_NP_ratio", ylab3 = "Leaf N:P ratio", 
+                     yval3 = "log(Soil_ammonium)", 
+                     ylab3 = c(expression(log(IEM*-NH[4]^'+'*-N)), 
+                               expression((mg~cm^'-2'))),
                      
                      yval4 = "log(Soil_NP_ratio)", ylab4 = "log(Soil N:P ratio)")
 
@@ -265,18 +323,22 @@ create_fig_byOA_wide(data = hak_dd, showlayout = FALSE,
                      
                      xval3 = "log(trans_aconitic_P)", 
                      pred_xval3 = "trans_aconitic_P",
-                     xlab3 = "log(Trans-aconitic\n(nmol))",
+                     xlab3 = c("log(Trans-aconitic)", "(nmol)"),
                      
                      xval4 = "log(total_P)", pred_xval4 = "total_P",
-                     xlab4 = "log(Total exudate\n(nmol))",
+                     xlab4 = c("log(Total exudate)", "(nmol)"),
                      
-                     yval1 = "total_MUB_root", 
-                     ylab1 = expression(atop("Acid phosphatse", 
-                                             (MUB~nmol~h^'-1'~mm^'-2'))),
+                     yval1 = "Soil_phosphate", 
+                     ylab1 = c(expression(IEM*-PO[4]^'3-'*-P), 
+                               expression((mg~cm^'-2'))),
                      
-                     yval2 = 'log(leaf_Mn)', ylab2 = expression(log(Leaf~Mn~(mg~kg^'-1'))),
+                     yval2 = 'Soil_nitrate', 
+                     ylab2 = c(expression(IEM*-NO[3]^'-'*-N), 
+                               expression((mg~cm^'-2'))),
                      
-                     yval3 = "leaf_NP_ratio", ylab3 = "Leaf N:P ratio", 
+                     yval3 = "log(Soil_ammonium)", 
+                     ylab3 = c(expression(log(IEM*-NH[4]^'+'*-N)), 
+                               expression((mg~cm^'-2'))),
                      
                      yval4 = "log(Soil_NP_ratio)", ylab4 = "log(Soil N:P ratio)")
 
@@ -313,10 +375,10 @@ create_fig_OAdriver_wid(data = hak_dd, showlayout = FALSE,
                         ylab2 = expression(Oxalic~(nmol)),
                         
                         yval3 = "log(trans_aconitic_R)", 
-                        ylab3 = "log(Trans-aconitic)\n(nmol)",
+                        ylab3 = c("log(Trans-aconitic)", "(nmol)"),
                         
-                        yval4 = "log(total_R)", 
-                        ylab4 = "log(Total exudate)\n(nmol)")
+                        yval4 = "total_MUB", 
+                        ylab4 = c("Acid phosphatse", expression((MUB~nmol~h^'-1'))))
 p <- recordPlot()
 
 pdf(file = "Output/Figs/Hakea_rhizoOAdriving_factors.pdf", 
@@ -350,10 +412,10 @@ create_fig_OAdriver_wid(data = hak_dd, showlayout = FALSE,
                         ylab2 = expression(Oxalic~(nmol)),
                         
                         yval3 = "log(trans_aconitic_P)", 
-                        ylab3 = "log(Trans aconitic)\n(nmol)",
+                        ylab3 = c("log(Trans aconitic)", "(nmol)"),
                         
                         yval4 = "log(total_P)", 
-                        ylab4 = "log(Total exudate)\n(nmol)")
+                        ylab4 = c("log(Total exudate)", "(nmol)"))
 p <- recordPlot()
 
 pdf(file = "Output/Figs/Hakea_plantOAdriving_factors.pdf", 
@@ -362,6 +424,51 @@ replayPlot(p)
 dev.off()
 
 save_png600(filename = "Output/Figs/Hakea_plantOAdriving_factors.png",
+            width = 6, height = 6.5)
+replayPlot(p)
+dev.off()
+
+# > Soil-Leaf chemistry ---------------------------------------------------
+
+create_fig_byOA_wide(data = hak_dd, showlayout = FALSE, 
+                     fig_title = "Hakea-Soil vs. Leaf",
+                     
+                     xval1 = "Soil_nitrate", pred_xval1 = "Soil_nitrate", 
+                     xlab1 = c(expression(IEM*-NO[3]^'-'*-N), 
+                               expression((mg~cm^'-2'))),
+                     
+                     xval2 = "log(Soil_ammonium)", pred_xval2 = "Soil_ammonium",
+                     xlab2 = c(expression(log(IEM*-NH[4]^'+'*-N)), 
+                               expression((mg~cm^'-2'))),
+                     
+                     xval3 = "Soil_phosphate", pred_xval3 = "Soil_phosphate",
+                     xlab3 = c(expression(IEM*-PO[4]^'3-'*-P), 
+                               expression((mg~cm^'-2'))),
+                     
+                     xval4 = "log(Soil_NP_ratio)", pred_xval4 = "Soil_NP_ratio",
+                     xlab4 = "log(Soil N:P ratio)",
+                     
+                     yval1 = "log(leaf_N)", 
+                     ylab1 = c(expression(log(Leaf~N)), 
+                               expression((mg~kg^'-1'))),
+                     
+                     yval2 = 'leaf_P', 
+                     ylab2 = expression(Leaf~P~(mg~kg^'-1')),
+                     
+                     yval3 = "leaf_NP_ratio", 
+                     ylab3 = "Leaf N:P ratio", 
+                     
+                     yval4 = "log(leaf_Mn)", 
+                     ylab4 =  expression(Leaf~Mn~(mg~kg^'-1')))
+
+p <- recordPlot()
+
+pdf(file = "Output/Figs/Hakea_soil_leaf_chem.pdf", 
+    width = 6, height = 6.5)
+replayPlot(p)
+dev.off()
+
+save_png600(filename = "Output/Figs/Hakea_soil_leaf_chem.png",
             width = 6, height = 6.5)
 replayPlot(p)
 dev.off()
@@ -398,16 +505,20 @@ create_fig_byOA_wide(data = eu_dd, showlayout = FALSE,
                      xval3 = "shikimic_R", pred_xval3 = "shikimic_R",
                      xlab3 = "Shikimic (nmol))",
                      
-                     xval4 = "sqrt(total_R)", pred_xval4 = "total_R",
-                     xlab4 = expression(sqrt(Total~exudate~(nmol))),
+                     xval4 = "total_MUB", pred_xval4 = "total_MUB",
+                     xlab4 = c("Acid phosphatse", expression(MUB~nmol~h^'-1')),
                      
-                     yval1 = "log(total_MUB_root)",
-                     ylab1 = expression(atop("log(Acid phosphatse)", 
-                                             (MUB~nmol~h^'-1'~mm^'-2'))),
+                     yval1 = "log(Soil_phosphate)", 
+                     ylab1 = c(expression(log(IEM*-PO[4]^'3-'*-P)), 
+                               expression((mg~cm^'-2'))),
                      
-                     yval2 = 'log(leaf_Mn)', ylab2 = expression(log(Leaf~Mn~(mg~kg^'-1'))),
+                     yval2 = 'Soil_nitrate', 
+                     ylab2 = c(expression(IEM*-NO[3]^'-'*-N), 
+                               expression((mg~cm^'-2'))),
                      
-                     yval3 = "leaf_NP_ratio", ylab3 = "Leaf N:P ratio", 
+                     yval3 = "Soil_ammonium", 
+                     ylab3 = c(expression(IEM*-NH[4]^'+'*-N), 
+                               expression((mg~cm^'-2'))),
                      
                      yval4 = "log(Soil_NP_ratio)", ylab4 = "log(Soil N:P ratio)")
 
@@ -446,14 +557,17 @@ create_fig_byOA_wide(data = eu_dd, showlayout = FALSE,
                      xval4 = "sqrt(total_P)", pred_xval4 = "total_P",
                      xlab4 = expression(sqrt(Total~(nmol))),
                      
-                     yval1 = "log(total_MUB_root)", 
-                     ylab1 = expression(atop("log(Acid phosphatse)", 
-                                             (MUB~nmol~h^'-1'~mm^'-2'))),
+                     yval1 = "log(Soil_phosphate)", 
+                     ylab1 = c(expression(log(IEM*-PO[4]^'3-'*-P)), 
+                               expression((mg~cm^'-2'))),
                      
-                     yval2 = 'log(leaf_Mn)', 
-                     ylab2 = expression(log(Leaf~Mn~(mg~kg^'-1'))),
+                     yval2 = 'Soil_nitrate', 
+                     ylab2 = c(expression(IEM*-NO[3]^'-'*-N), 
+                               expression((mg~cm^'-2'))),
                      
-                     yval3 = "leaf_NP_ratio", ylab3 = "Leaf N:P ratio", 
+                     yval3 = "Soil_ammonium", 
+                     ylab3 = c(expression(IEM*-NH[4]^'+'*-N), 
+                               expression((mg~cm^'-2'))),
                      
                      yval4 = "log(Soil_NP_ratio)", ylab4 = "log(Soil N:P ratio)")
 
@@ -492,8 +606,9 @@ create_fig_OAdriver_wid(data = eu_dd, showlayout = FALSE,
                         yval3 = "shikimic_R", 
                         ylab3 = expression(Shikimic~(nmol)),
                         
-                        yval4 = "sqrt(total_R)", 
-                        ylab4 = expression(sqrt(Total~exudate~(nmol))))
+                        yval4 = "total_MUB", 
+                        ylab4 = c("Acid phosphatse", 
+                                  expression((MUB~nmol~h^'-1'))))
 p <- recordPlot()
 
 pdf(file = "Output/Figs/Eucalyptus_rhizoOAdriving_factors.pdf", 
@@ -545,4 +660,47 @@ replayPlot(p)
 dev.off()
 
 
+# > Soil-Leaf chemistry ---------------------------------------------------
 
+
+create_fig_byOA_wide(data = eu_dd, showlayout = FALSE, 
+                     fig_title = "Eucalyptus-Soil vs. Leaf",
+                     
+                     xval1 = "Soil_nitrate", pred_xval1 = "Soil_nitrate", 
+                     xlab1 = c(expression(IEM*-NO[3]^'-'*-N), 
+                               expression((mg~cm^'-2'))),
+                     
+                     xval2 = "log(Soil_ammonium)", pred_xval2 = "Soil_ammonium",
+                     xlab2 = c(expression(log(IEM*-NH[4]^'+'*-N)), 
+                               expression((mg~cm^'-2'))),
+                     
+                     xval3 = "Soil_phosphate", pred_xval3 = "Soil_phosphate",
+                     xlab3 = c(expression(IEM*-PO[4]^'3-'*-P), 
+                               expression((mg~cm^'-2'))),
+                     
+                     xval4 = "log(Soil_NP_ratio)", pred_xval4 = "Soil_NP_ratio",
+                     xlab4 = "log(Soil N:P ratio)",
+                     
+                     yval1 = "log(leaf_N)", 
+                     ylab1 = c("log(Leaf N)", expression((mg~kg^'-1'))),
+                     
+                     yval2 = 'leaf_P', 
+                     ylab2 = expression(Leaf~P~(mg~kg^'-1')),
+                     
+                     yval3 = "leaf_NP_ratio", 
+                     ylab3 = "Leaf N:P ratio", 
+                     
+                     yval4 = "log(leaf_Mn)", 
+                     ylab4 =  expression(Leaf~Mn~(mg~kg^'-1')))
+
+p <- recordPlot()
+
+pdf(file = "Output/Figs/Eucalyptus_soil_leaf_chem.pdf", 
+    width = 6, height = 6.5)
+replayPlot(p)
+dev.off()
+
+save_png600(filename = "Output/Figs/Eucalyptus_soil_leaf_chem.png",
+            width = 6, height = 6.5)
+replayPlot(p)
+dev.off()
