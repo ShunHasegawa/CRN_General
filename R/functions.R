@@ -23,7 +23,14 @@ create_regplot <- function(data, yval, xval, pred_xval, axpos = 2, ...){
   # regression analysis
   f2 <- formula(paste(yval, "~", xval, "* co2 * water"))
   m <- lm(f2, data = data)
-  print(Anova(m))
+  ms <- dredge(m, rank = "AICc") # rank models with AICc
+  mb <- get.models(ms, 1)[[1]] # choose the one with samllest AICc
+  print(Anova(mb))
+  
+  # model average between those with dAICc <2 
+  if(length(get.models(ms, subset = delta < 2)) > 1) {
+    print(summary(model.avg(ms, subset = delta < 2)))
+  }
   
   # plot regression lines
   newd <- ddply(data, .(co2, water), 
@@ -32,12 +39,12 @@ create_regplot <- function(data, yval, xval, pred_xval, axpos = 2, ...){
   names(newd)[3] <- pred_xval
   
   newd <- mutate(newd, 
-                 pred_val = predict(m, newd), 
+                 pred_val = predict(mb, newd), 
                  colval   = as.numeric(co2 : water))
   
   f3 <- formula(paste("pred_val ~", xval))
   d_ply(newd, .(co2, water), 
-        function(x) lines(f3, col = x$colval, data = x))
+        function(x) lines(f3, col = alpha(x$colval, .6), lwd = 2, data = x))
   }
 
 
@@ -50,13 +57,12 @@ create_boxplot <- function(data, yval, ...){
 
 
 # create plots for OA drivers 
-create_fig_OAdriver <- function(data, 
+create_fig_OAdriver <- function(data, showlayout = TRUE, 
                                 xval1, xval2, xval3,
                                 pred_xval1, pred_xval2, pred_xval3,
                                 xlim1 = NULL, xlim2 = NULL, xlim3 = NULL,
                                 xlab1, xlab2, xlab3,
-                                yval1, ylim1 = NULL, ylab1,
-                                showlayout = TRUE){
+                                yval1, ylim1 = NULL, ylab1){
   
   # define xy limit
   xy_lim <- llply(c(xval1, xval2, xval3, yval1), 
@@ -71,49 +77,52 @@ create_fig_OAdriver <- function(data,
   nf <- layout(matrix(1:8, byrow = TRUE, 2, 4), c(4, 3, 3, 1.5), c(1, 4), respect = FALSE)
   if(showlayout) layout.show(nf)
   
-  # boplot with xval1
-  par(mar = c(0, 5, 1, 0))
-  create_boxplot(data = data, yval = xval1,  xlab = "", ylab = "", 
-                 ylim = xlim1, horizontal = TRUE)
+  # define margins
+  mar_box1 <- c(0, 5, 1, 0)
+  mar_box2 <- c(0, 1, 1, 0)
+  mar_reg1 <- c(5, 5, 1, 0)
+  mar_reg2 <- c(5, 1, 1, 0)
   
-  # boxplot with xval2
-  par(mar = c(0, 1, 1, 0))
-  create_boxplot(data = data, yval = xval2,  xlab = "", ylab = "", 
-                 ylim = xlim2, horizontal = TRUE)
-  
-  # boxplot with xval3
-  create_boxplot(data = data, yval = xval3,  xlab = "", ylab = "", 
-                 ylim = xlim3, horizontal = TRUE)
+  # boplot with xvals
+  m_ply(cbind(yval = c(xval1, xval2, xval3),
+              ylim = paste0("xlim", 1:3),
+              mar_val = c("mar_box1", rep("mar_box2", 2))),
+        function(..., ylim, mar_val) {
+          par(mar = get(mar_val))
+          create_boxplot(..., data = data, xlab = "", ylab = "", 
+                         ylim = get(ylim), horizontal = TRUE)
+        }
+  )
   
   # blank plot with legend
   par(mar = c(0, 0, 0, 0))
   plot.new()
   legend("left", legend = levels(data$CW), col = 1:4, pch = 19, bty = "n")
   
-  # regression plot with xval1
-  par(mar = c(5, 5, 1, 0))
-  create_regplot(data = data, yval = yval1, xval = xval1,
-                 pred_xval = pred_xval1, ylim = ylim1, xlim = xlim1, 
-                 ylab = ylab1, xlab = xlab1, axpos = 1)
-  axis(2)
+  # regression plots
+  nlab <- "" # empty label
   
-  # regression plot with xval2
-  par(mar = c(5, 1, 1, 0))
-  create_regplot(data = data, yval = yval1, xval = xval2,
-                 pred_xval = pred_xval2, 
-                 ylim = ylim1, xlim = xlim2, 
-                 ylab = ylab1, xlab = xlab2, axpos = 1)
+  m_reg <-cbind(xval      = c(xval1, xval2, xval3), 
+                pred_xval = c(pred_xval1, pred_xval2, pred_xval3),
+                xlim      = paste0("xlim", 1:3),
+                xlab      = paste0("xlab", 1:3),
+                mar_val   = c("mar_reg1", rep("mar_reg2", 2)),
+                ylab      = c("ylab1", "nlab", "nlab"),
+                yaxis     = c(TRUE, FALSE, FALSE)) # matrix for regressino plots
   
-  # regression plot with xval3
-  create_regplot(data = data, yval = yval1, xval = xval3,
-                 pred_xval = pred_xval3, 
-                 ylim = ylim1, xlim = xlim3, 
-                 ylab = ylab1, xlab = xlab3, axpos = 1)
-  
+  m_ply(m_reg,
+        function(..., xlim, xlab, yaxis, mar_val, ylab){
+          par(mar = get(mar_val))
+          create_regplot(..., data = data, 
+                         yval = yval1, ylim = ylim1, ylab = get(ylab),
+                         xlim = get(xlim), xlab = get(xlab), axpos = 1)
+          if(yaxis) axis(2)
+        }
+  )
+
   # boxplot for yval1
   par(mar = c(5, 1, 1, 1))
-  create_boxplot(data = data, yval = yval1, xlab = "", ylab = "", 
-                 ylim = ylim1)
+  create_boxplot(data = data, yval = yval1, xlab = "", ylab = "", ylim = ylim1)
   
 }
 
@@ -181,7 +190,7 @@ save_png600 <- function(...) png(..., res = 600, units = "in")
 
 # create multi-plots for OA-driven factors 
 
-create_fig_byOA_wide <- function(data, showlayout = TRUE,
+create_fig_byOA_wide <- function(data, showlayout = TRUE, fig_title,
                                  xval1, xval2, xval3, xval4,
                                  xlab1, xlab2, xlab3, xlab4,
                                  pred_xval1, pred_xval2, pred_xval3, pred_xval4, 
@@ -192,7 +201,8 @@ create_fig_byOA_wide <- function(data, showlayout = TRUE,
                                  ylim1 = NULL, ylim2 = NULL, ylim3 = NULL, 
                                  ylim4 = NULL){
   
-  # * define xy limit ====
+  
+  # . define xy limit ====
   xy_lim <- llply(c(xval1, xval2, xval3, xval4, yval1, yval2, yval3, yval4), 
                   function(x) with(data, range(eval(parse(text = x)))))
   
@@ -214,19 +224,20 @@ create_fig_byOA_wide <- function(data, showlayout = TRUE,
   # ylim cannot be directly passed as it is a vector with two elements (i.e.
   # min and max values). the values in ylim will be called using get().
   
-  # * plot layour ====
-  nf <- layout(matrix(c(1,  2,  3,  4,  5,
-                        6, 10, 14, 18, 22,
-                        7, 11, 15, 19, 23,
-                        8, 12, 16, 20, 24,
-                        9, 13, 17, 21, 25),
-                      byrow = TRUE, 5, 5), 
+  # . plot layour ====
+  nf <- layout(matrix(c(26, 26, 26, 26, 26,
+                         1,  2,  3,  4,  5,
+                         6, 10, 14, 18, 22,
+                         7, 11, 15, 19, 23,
+                         8, 12, 16, 20, 24,
+                         9, 13, 17, 21, 25),
+                      byrow = TRUE, 6, 5), 
                widths  = c(6.5, 4, 4, 4, 2.5), 
-               heights = c(1.5, 2.5, 2.5, 2.5, 3.5), 
+               heights = c(.4, 1.5, 2.5, 2.5, 2.5, 3.5), 
                respect = FALSE)
   if(showlayout) layout.show(nf)
   
-  # * graphic margin ====
+  # . graphic margin ====
   par_r1c1   <- c(1, 6, 1, 1)
   par_r1c2   <- c(1, 0, 1, 1)
   par_r24c1  <- c(1, 6, 0, 1)
@@ -234,7 +245,7 @@ create_fig_byOA_wide <- function(data, showlayout = TRUE,
   par_r24c25 <- c(1, 0, 0, 1)
   par_r5c25  <- c(4, 0, 0, 1)
   
-  # * boxplot in the 1st row ====
+  # . boxplot in the 1st row ====
   m_R1 <- cbind(yval    = c(xval1, xval2, xval3, xval4),
                 ylim    = c("xlim1", "xlim2", "xlim3", "xlim4"),
                 par_val = c("par_r1c1", rep("par_r1c2", 3)))
@@ -243,12 +254,12 @@ create_fig_byOA_wide <- function(data, showlayout = TRUE,
     create_boxplot(..., data = data, ylim = get(ylim), horizontal = TRUE)
   })
   
-  # * blank plot with legend ====
+  # . blank plot with legend ====
   par(mar = c(0, 0, 0, 0))
   plot.new()
   legend("left", legend = levels(data$CW), col = 1:4, pch = 19, bty = "n")
   
-  # * regression plots ====
+  # . regression plots ====
   nlab <- "" # no label
   
   m_R25C14 <- cbind(xval      = rep(c(xval1, xval2, xval3, xval4), each = 4), 
@@ -273,18 +284,22 @@ create_fig_byOA_wide <- function(data, showlayout = TRUE,
     if(xaxis) axis(1)
   })
   
-  # * boxplot for yvals ====
+  # . boxplot for yvals ====
   ymat <- cbind(yval    = c(yval1, yval2, yval3, yval4),
                 ylim    = paste0("ylim", 1:4), 
                 par_val = c(rep("par_r24c25", 3), "par_r5c25"))
   m_ply(ymat, function(ylim, par_val, ...){
     par(mar = get(par_val))
     create_boxplot(data = data, ylim = get(ylim), ...)
-  }
-  )
+  })
+  
+  # . fig title ====
+  par(mar = c(0, 0, 0, 0))
+  plot.new()
+  text(x = .5, y = .3, labels = fig_title, cex = 1.2)
 }
 
-create_fig_OAdriver_wid <- function(data, 
+create_fig_OAdriver_wid <- function(data, showlayout = TRUE, fig_title, 
                                     xval1, xval2, xval3,
                                     pred_xval1, pred_xval2, pred_xval3,
                                     xlim1 = NULL, xlim2 = NULL, xlim3 = NULL,
@@ -292,10 +307,9 @@ create_fig_OAdriver_wid <- function(data,
                                     yval1, yval2, yval3, yval4,
                                     ylim1 = NULL, ylim2 = NULL, ylim3 = NULL, 
                                     ylim4 = NULL,
-                                    ylab1, ylab2, ylab3, ylab4,
-                                    showlayout = TRUE){
+                                    ylab1, ylab2, ylab3, ylab4){
   
-  # * define xy limit ====
+  # . define xy limit ====
   xy_lim <- llply(c(xval1, xval2, xval3, yval1, yval2, yval3, yval4), 
                   function(x) with(data, range(eval(parse(text = x)))))
   
@@ -307,18 +321,19 @@ create_fig_OAdriver_wid <- function(data,
   if(is.null(ylim3)) ylim3 <- xy_lim[[6]]
   if(is.null(ylim4)) ylim4 <- xy_lim[[7]]
   
-  # * plot layout ====
-  nf <- layout(matrix(c(1,  2,  3, 4,
-                        5,  9, 13, 17,
-                        6, 10, 14, 18,
-                        7, 11, 15, 19,
-                        8, 12, 16, 20),
-                      byrow = TRUE, 5, 4), 
-               widths  = c(4, 3, 3, 2), 
-               heights = c(3, 4, 4, 4, 5), respect = FALSE)
+  # . plot layout ====
+  nf <- layout(matrix(c(21, 21, 21, 21,
+                         1,  2,  3,  4,
+                         5,  9, 13,  17,
+                         6, 10, 14,  18,
+                         7, 11, 15,  19,
+                         8, 12, 16,  20),
+                      byrow = TRUE, 6, 4), 
+               widths  = c(4, 3, 3, 1.5), 
+               heights = c(.6, 2, 4, 4, 4, 5.5), respect = FALSE)
   if(showlayout) layout.show(nf)
   
-  # * fig margin ====
+  # . fig margin ====
   mar_r1c1   <- c(1, 5, 1, 1) # plot 1
   mar_r24c1  <- c(1, 5, 0, 1) # plot 5, 6, 7
   mar_r5c1   <- c(5, 5, 0, 1) # plot 8 
@@ -326,7 +341,7 @@ create_fig_OAdriver_wid <- function(data,
   mar_r24c24 <- c(1, 0, 0, 1) # plot 9-11, 13-15, 17-19
   mar_r5c25  <- c(5, 0, 0, 1) # plot 12, 16, 20
   
-  # * boplots on the 1st row ====
+  # . boplots on the 1st row ====
   m_R1 <- cbind(yval    = c(xval1, xval2, xval3),
                 ylim    = paste0("xlim", 1:3), 
                 mar_val = c("mar_r1c1", rep("mar_r1c23", 2))) # margin
@@ -337,12 +352,12 @@ create_fig_OAdriver_wid <- function(data,
                    ylim = get(ylim))
   })
   
-  # * blank plot with legend ====
+  # . blank plot with legend ====
   par(mar = c(0, 0, 0, 0))
   plot.new()
   legend("left", legend = levels(data$CW), col = 1:4, pch = 19, bty = "n")
   
-  # * define matrix for regression plots ====
+  # . define matrix for regression plots ====
   nlab <- "" # empty label
   
   m_reg <- cbind(xval      = rep(c(xval1, xval2, xval3), each = 4),
@@ -360,7 +375,7 @@ create_fig_OAdriver_wid <- function(data,
                  axpos     = c(rep(2, 4), rep(NA, 8)),
                  xaxis     = rep(c(rep(FALSE, 3), TRUE), 3))
   
-  # * regression plots ====
+  # . regression plots ====
   m_ply(m_reg, function(..., xlab, xlim, ylab, ylim, mar_val, xaxis){
     par(mar = get(mar_val))
     create_regplot(..., data = data, 
@@ -369,7 +384,7 @@ create_fig_OAdriver_wid <- function(data,
     if(xaxis) axis(1)
   })
   
-  # * boxplots ====
+  # . boxplots ====
   m_ply(cbind(yval    = c(yval1, yval2, yval3, yval4),
               ylim    = paste0("ylim", 1:4),
               mar_val = c(rep("mar_r24c24", 3), "mar_r5c25")), 
@@ -377,4 +392,9 @@ create_fig_OAdriver_wid <- function(data,
           par(mar = get(mar_val))
           create_boxplot(..., data = data, xlab = "", ylab = "", ylim = get(ylim))
         })
+  
+  # . fig title ====
+  par(mar = c(0, 0, 0, 0))
+  plot.new()
+  text(x = .5, y = .3, labels = fig_title, cex = 1.2)
 }
